@@ -18,14 +18,28 @@ Node ──▶ [Connect] ──▶ System Tree / Graph ──▶ Visual Terminal
 
 ---
 
-## Installation
+## Single-Line Install
+
+Install GraphNode instantly with a single command (Linux / macOS):
 
 ```bash
-cd graphnode
-pip install .
+curl -sSL https://raw.githubusercontent.com/khokharsnehil45/graphnode/main/install.sh | bash
 ```
 
-Installs `graphnode` and the short alias `gnode` globally into your PATH.
+The installer configures an isolated virtual environment and creates binary links for `graphnode` and `gnode` at `~/.local/bin`.
+
+### Manual Installation (git & pip)
+
+```bash
+git clone https://github.com/khokharsnehil45/graphnode.git
+cd graphnode
+
+# Install package
+pip install .
+
+# Or editable mode for development
+pip install -e ".[dev]"
+```
 
 ---
 
