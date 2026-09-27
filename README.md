@@ -8,6 +8,7 @@
   <img src="https://img.shields.io/badge/Python-3.9%2B-blue?style=flat-square&logo=python" alt="Python 3.9+">
   <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License MIT">
   <img src="https://img.shields.io/badge/Tests-33%20Passing-brightgreen?style=flat-square" alt="Tests">
+  <a href="https://khokharsnehil45.github.io/graphnode/"><img src="https://img.shields.io/badge/Docs-Live%20Website-0ea5e9?style=flat-square" alt="Documentation"></a>
 </p>
 
 ```text
@@ -15,6 +16,8 @@ Node ──▶ [Connect] ──▶ System Tree / Graph ──▶ Visual Terminal
 ```
 
 **GraphNode** lets you build, inspect, and document system architecture topologies, microservice networks, and dependency graphs directly from your terminal.
+
+🌐 **Interactive Documentation Website**: [https://khokharsnehil45.github.io/graphnode/](https://khokharsnehil45.github.io/graphnode/)
 
 ---
 
