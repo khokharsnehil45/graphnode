@@ -1,0 +1,3 @@
+[console_scripts]
+gnode = graphnode.cli:main
+graphnode = graphnode.cli:main
