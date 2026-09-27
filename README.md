@@ -7,7 +7,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.9%2B-blue?style=flat-square&logo=python" alt="Python 3.9+">
   <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License MIT">
-  <img src="https://img.shields.io/badge/Tests-30%20Passing-brightgreen?style=flat-square" alt="Tests">
+  <img src="https://img.shields.io/badge/Tests-33%20Passing-brightgreen?style=flat-square" alt="Tests">
 </p>
 
 ```text
@@ -25,26 +25,66 @@ cd graphnode
 pip install .
 ```
 
-Installs both `graphnode` and the short alias `gnode`.
+Installs `graphnode` and the short alias `gnode` globally into your PATH.
 
 ---
 
-## Quick Start
+## Quick Start: Dedicated Named Graphs & Custom Commands
+
+You can create independent system graphs and control each directly via its own auto-generated CLI command:
 
 ```bash
-# 1. Add nodes with optional component types
+# 1. Create a new graph (automatically generates an executable CLI shortcut!)
+graphnode -create graph1
+
+# 2. Directly command graph1 in your terminal!
+graph1 -add node1 -type service
+graph1 -add node2 -type db
+
+# 3. Connect nodes with protocol or relationship labels
+graph1 -connect node1 node2 -label reads
+
+# 4. Visualize the system tree
+graph1 -show
+```
+
+---
+
+## Standard Workflow
+
+You can also use `graphnode` directly in any project folder:
+
+```bash
+# Add components
 graphnode -add client -type client
 graphnode -add api_gateway -type gateway
 graphnode -add auth_service -type service
 graphnode -add postgres_db -type db
 
-# 2. Connect components with directed edges and protocol labels
+# Connect components
 graphnode -connect client api_gateway -label HTTPS
 graphnode -connect api_gateway auth_service -label gRPC
 graphnode -connect auth_service postgres_db -label SQL
 
-# 3. Visualize system tree in the terminal
+# Visualize system tree
 graphnode -show
+```
+
+---
+
+## Multi-Graph Registry
+
+Switch, list, and manage multiple system graphs effortlessly:
+
+```bash
+# List all registered graphs
+graphnode -graphs
+
+# Switch active graph
+graphnode -use backend_v2
+
+# Delete a graph and its CLI shortcut
+graphnode -delete-graph old_system
 ```
 
 ---

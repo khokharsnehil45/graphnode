@@ -15,7 +15,18 @@ from graphnode.export import (
 )
 from graphnode.graph import GraphError, NodeExistsError, NodeNotFoundError
 from graphnode.render import render_card, render_flow, render_tree
-from graphnode.storage import find_graph_file, init_graph, load_graph, save_graph
+from graphnode.storage import (
+    create_named_graph,
+    delete_named_graph,
+    find_graph_file,
+    get_active_graph_name,
+    init_graph,
+    list_named_graphs,
+    load_graph,
+    resolve_graph_target,
+    save_graph,
+    set_active_graph_name,
+)
 from graphnode.version import __version__
 
 
@@ -30,6 +41,26 @@ def create_parser() -> argparse.ArgumentParser:
     # Core actions (supporting flag style like -add, -connect, -show)
     action_group = parser.add_argument_group("Commands")
 
+    action_group.add_argument(
+        "-create",
+        metavar="GRAPH_NAME",
+        help="Create a new named graph and register its CLI shortcut command.",
+    )
+    action_group.add_argument(
+        "-use",
+        metavar="GRAPH_NAME",
+        help="Switch active graph in the global registry.",
+    )
+    action_group.add_argument(
+        "-graphs",
+        action="store_true",
+        help="List all registered named graphs and metrics.",
+    )
+    action_group.add_argument(
+        "-delete-graph",
+        metavar="GRAPH_NAME",
+        help="Delete a named graph and remove its CLI shortcut command.",
+    )
     action_group.add_argument(
         "-add",
         "-a",
@@ -103,6 +134,12 @@ def create_parser() -> argparse.ArgumentParser:
     # Modifiers & options
     option_group = parser.add_argument_group("Options")
     option_group.add_argument(
+        "-g",
+        "--graph",
+        metavar="GRAPH_NAME",
+        help="Target a specific named graph or graph file.",
+    )
+    option_group.add_argument(
         "-type",
         "-t",
         "--type",
@@ -147,7 +184,7 @@ def create_parser() -> argparse.ArgumentParser:
 
 
 def normalize_argv(argv: Sequence[str]) -> list[str]:
-    """Normalize subcommands (e.g. 'add' -> '-add', 'connect' -> '-connect', 'show' -> '-show')."""
+    """Normalize subcommands and route named graph shortcuts."""
     normalized: list[str] = []
     subcommand_map = {
         "add": "-add",
@@ -162,8 +199,21 @@ def normalize_argv(argv: Sequence[str]) -> list[str]:
         "export": "-export",
         "init": "-init",
         "clear": "-clear",
+        "create": "-create",
+        "use": "-use",
+        "graphs": "-graphs",
+        "delete-graph": "-delete-graph",
     }
-    for arg in argv:
+
+    # If first argument is a registered graph name (e.g. graphnode graph1 -add node1)
+    named = list_named_graphs()
+    if argv and argv[0] in named:
+        normalized.extend(["-g", argv[0]])
+        remaining = argv[1:]
+    else:
+        remaining = argv
+
+    for arg in remaining:
         if arg in subcommand_map:
             normalized.append(subcommand_map[arg])
         else:
@@ -187,15 +237,81 @@ def run(argv: Sequence[str] | None = None) -> int:
 
     target_file = Path(args.file).resolve() if args.file else None
 
+    # Handle -create
+    if args.create:
+        try:
+            graph, gfile, bin_path = create_named_graph(args.create)
+            print(f"✨ Created new graph '{graph.name}'")
+            print(f"📦 Graph storage : {gfile}")
+            if bin_path:
+                print(f"🚀 CLI command   : {bin_path.name}")
+            print(f"Active graph set to '{graph.name}'.")
+            print(f"\nYou can now run directly:")
+            print(f"  {args.create} -add <node_name>")
+            print(f"  {args.create} -connect <node1> <node2>")
+            print(f"  {args.create} -show")
+            return 0
+        except ValueError as exc:
+            sys.stderr.write(f"Error: {exc}\n")
+            return 1
+
+    # Handle -use
+    if args.use:
+        named_graphs = list_named_graphs()
+        if args.use not in named_graphs:
+            sys.stderr.write(f"Error: Graph '{args.use}' does not exist. Use '-create {args.use}' first.\n")
+            return 1
+        set_active_graph_name(args.use)
+        print(f"Active graph set to '{args.use}'.")
+        return 0
+
+    # Handle -graphs
+    if args.graphs:
+        named_graphs = list_named_graphs()
+        active = get_active_graph_name()
+        width = 65
+        div = "=" * width
+        inner_width = width - 4
+        lines = [
+            div,
+            f"|{'GRAPHNODE REGISTRY'.center(width - 2)}|",
+            div,
+        ]
+        if not named_graphs:
+            lines.append(f"| {'No named graphs registered yet. Use -create <name>'.ljust(inner_width)} |")
+        else:
+            for gname, gpath in named_graphs.items():
+                is_active = (gname == active)
+                star = " (active)" if is_active else ""
+                try:
+                    g, _ = load_graph(gpath)
+                    info = f"{len(g.nodes)} nodes, {len(g.get_all_edges())} connections"
+                except Exception:
+                    info = "unknown"
+                entry = f"• {gname}{star} : {info}"
+                lines.append(f"| {entry.ljust(inner_width)} |")
+        lines.append(div)
+        print("\n".join(lines))
+        return 0
+
+    # Handle -delete-graph
+    if args.delete_graph:
+        if delete_named_graph(args.delete_graph):
+            print(f"Deleted graph '{args.delete_graph}' and removed CLI shortcut command.")
+            return 0
+        else:
+            sys.stderr.write(f"Error: Graph '{args.delete_graph}' not found.\n")
+            return 1
+
     # Handle -init
     if args.init is not None:
         graph, path = init_graph(file_path=target_file, name=args.init)
         print(f"✨ Initialized new system graph '{graph.name}' at: {path}")
         return 0
 
-    # Load active graph
+    # Resolve and load active graph
     try:
-        graph, path = load_graph(file_path=target_file)
+        graph, path = resolve_graph_target(graph_name=args.graph, file_path=target_file)
     except Exception as exc:
         sys.stderr.write(f"Error: {exc}\n")
         return 1

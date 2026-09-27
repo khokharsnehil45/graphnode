@@ -71,3 +71,51 @@ def test_corrupt_graph_file_error(tmp_path: Path) -> None:
 
     with pytest.raises(OSError, match="Failed to read graph file"):
         load_graph(bad_file)
+
+
+def test_named_graph_lifecycle() -> None:
+    """Test creating, listing, resolving, and deleting named graphs."""
+    from graphnode.storage import (
+        create_named_graph,
+        delete_named_graph,
+        get_active_graph_name,
+        list_named_graphs,
+        resolve_graph_target,
+        set_active_graph_name,
+    )
+
+    # Creation
+    graph, gfile, bin_path = create_named_graph("graph1")
+    assert graph.name == "graph1"
+    assert gfile.is_file()
+    assert bin_path.is_file()
+    assert bin_path.stat().st_mode & 0o111  # Executable
+
+    # Active tracking
+    assert get_active_graph_name() == "graph1"
+
+    # Listing
+    named = list_named_graphs()
+    assert "graph1" in named
+
+    # Resolution
+    resolved_g, resolved_p = resolve_graph_target(graph_name="graph1")
+    assert resolved_g.name == "graph1"
+    assert resolved_p == gfile
+
+    # Switch active
+    create_named_graph("graph2")
+    assert get_active_graph_name() == "graph2"
+    set_active_graph_name("graph1")
+    assert get_active_graph_name() == "graph1"
+
+    # Reserved name check
+    with pytest.raises(ValueError, match="reserved"):
+        create_named_graph("node")
+
+    # Deletion
+    assert delete_named_graph("graph1") is True
+    assert not gfile.is_file()
+    assert not bin_path.is_file()
+    assert "graph1" not in list_named_graphs()
+

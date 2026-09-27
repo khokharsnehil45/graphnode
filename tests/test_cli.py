@@ -153,3 +153,60 @@ def test_cli_error_cases(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> 
     code2 = run(["-connect", "missing1", "missing2", "-f", str(graph_file)])
     assert code2 == 1
     assert "Source node 'missing1' does not exist" in capsys.readouterr().err
+
+
+def test_cli_named_graph_commands(capsys: pytest.CaptureFixture[str]) -> None:
+    """Test -create, -use, -graphs, -delete-graph and targeting via CLI."""
+    # 1. Create graph1
+    assert run(["-create", "graph1"]) == 0
+    captured = capsys.readouterr()
+    assert "Created new graph 'graph1'" in captured.out
+    assert "graph1" in captured.out
+
+    # 2. Add nodes to graph1 via -g
+    assert run(["-g", "graph1", "-add", "node1", "node2"]) == 0
+    assert run(["-g", "graph1", "-connect", "node1", "node2"]) == 0
+
+    # 3. Show graph1 via -g
+    capsys.readouterr()
+    assert run(["-g", "graph1", "-show"]) == 0
+    out_show = capsys.readouterr().out
+    assert "node1" in out_show
+    assert "node2" in out_show
+
+    # 4. List graphs
+    assert run(["-graphs"]) == 0
+    out_graphs = capsys.readouterr().out
+    assert "GRAPHNODE REGISTRY" in out_graphs
+    assert "graph1" in out_graphs
+
+    # 5. Create graph2 and switch
+    assert run(["create", "graph2"]) == 0
+    assert run(["use", "graph1"]) == 0
+    captured_use = capsys.readouterr().out
+    assert "Active graph set to 'graph1'" in captured_use
+
+    # 6. Delete graph
+    assert run(["-delete-graph", "graph2"]) == 0
+    captured_del = capsys.readouterr().out
+    assert "Deleted graph 'graph2'" in captured_del
+
+    # Deleting nonexistent
+    assert run(["-delete-graph", "nonexistent"]) == 1
+
+
+def test_cli_positional_graph_routing(capsys: pytest.CaptureFixture[str]) -> None:
+    """Test routing when graph name is first argument (e.g. 'graphnode graph1 -add node1')."""
+    run(["-create", "clusterA"])
+    capsys.readouterr()
+
+    # Route via first positional argument
+    assert run(["clusterA", "-add", "master", "worker1"]) == 0
+    assert run(["clusterA", "-connect", "master", "worker1"]) == 0
+
+    capsys.readouterr()
+    assert run(["clusterA", "-show"]) == 0
+    captured = capsys.readouterr().out
+    assert "master" in captured
+    assert "worker1" in captured
+
