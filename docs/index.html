@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GraphNode Documentation - Command-Line System Tree & Architecture Graph</title>
+  <meta name="description" content="Official documentation for GraphNode: A lightweight, terminal-first system tree, graph architecture, and dependency mapping tool.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --bg-surface: #0f172a;
+      --bg-elevated: #1e293b;
+      --bg-glass: rgba(15, 23, 42, 0.85);
+      --border: #334155;
+      --border-subtle: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.15);
+      --accent-hover: #0ea5e9;
+      --green: #4ade80;
+      --purple: #c084fc;
+      --orange: #fb923c;
+      --yellow: #facc15;
+      --red: #f87171;
+      --code-bg: #030712;
+      --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --sidebar-width: 270px;
+      --toc-width: 220px;
+      --header-height: 64px;
+      --radius: 8px;
+    }
+
+    [data-theme="light"] {
+      --bg: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-elevated: #f1f5f9;
+      --bg-glass: rgba(255, 255, 255, 0.88);
+      --border: #cbd5e1;
+      --border-subtle: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --text-dim: #94a3b8;
+      --accent: #0284c7;
+      --accent-glow: rgba(2, 132, 199, 0.1);
+      --accent-hover: #0369a1;
+      --code-bg: #0f172a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      font-size: 16px;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      line-height: 1.65;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Top Navigation Header */
+    header.navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: var(--header-height);
+      background: var(--bg-glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 100;
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 1.15rem;
+      color: var(--text);
+      text-decoration: none;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-icon {
+      width: 30px;
+      height: 30px;
+      background: linear-gradient(135deg, var(--accent), #818cf8);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: 0.9rem;
+    }
+
+    .badge-version {
+      font-size: 0.72rem;
+      background: var(--bg-elevated);
+      color: var(--accent);
+      border: 1px solid var(--border);
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+    }
+
+    .nav-search {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 280px;
+    }
+
+    .nav-search input {
+      width: 100%;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 12px 7px 34px;
+      font-size: 0.85rem;
+      color: var(--text);
+      font-family: var(--font-sans);
+      outline: none;
+      transition: all 0.15s ease;
+    }
+
+    .nav-search input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .nav-search svg {
+      position: absolute;
+      left: 10px;
+      color: var(--text-dim);
+      pointer-events: none;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .nav-link {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.15s ease;
+    }
+
+    .nav-link:hover {
+      color: var(--accent);
+    }
+
+    .btn-icon {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: 6px;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-icon:hover {
+      color: var(--text);
+      border-color: var(--accent);
+    }
+
+    .btn-github {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .btn-github:hover {
+      border-color: var(--accent);
+      background: var(--bg-elevated);
+    }
+
+    /* Documentation Layout */
+    .layout-wrapper {
+      display: flex;
+      padding-top: var(--header-height);
+      min-height: 100vh;
+    }
+
+    /* Left Sidebar */
+    aside.sidebar {
+      position: fixed;
+      top: var(--header-height);
+      bottom: 0;
+      left: 0;
+      width: var(--sidebar-width);
+      background: var(--bg);
+      border-right: 1px solid var(--border);
+      padding: 24px 16px;
+      overflow-y: auto;
+      z-index: 50;
+    }
+
+    .sidebar-group {
+      margin-bottom: 24px;
+    }
+
+    .sidebar-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+      font-weight: 700;
+      margin-bottom: 8px;
+      padding-left: 10px;
+    }
+
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 500;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .sidebar-link:hover {
+      color: var(--text);
+      background: var(--bg-surface);
+    }
+
+    .sidebar-link.active {
+      color: var(--accent);
+      background: var(--accent-glow);
+      font-weight: 600;
+    }
+
+    .sidebar-link .level-tag {
+      font-size: 0.68rem;
+      font-family: var(--font-mono);
+      padding: 1px 5px;
+      border-radius: 4px;
+      margin-left: auto;
+    }
+
+    .level-tag.basic { background: rgba(74, 222, 128, 0.15); color: var(--green); }
+    .level-tag.inter { background: rgba(56, 189, 248, 0.15); color: var(--accent); }
+    .level-tag.adv { background: rgba(192, 132, 252, 0.15); color: var(--purple); }
+
+    /* Main Content Area */
+    main.content {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      padding: 40px 48px;
+      max-width: 900px;
+    }
+
+    /* Right Table of Contents */
+    aside.toc {
+      position: sticky;
+      top: calc(var(--header-height) + 40px);
+      width: var(--toc-width);
+      height: calc(100vh - var(--header-height) - 80px);
+      overflow-y: auto;
+      margin-left: 32px;
+      padding-left: 16px;
+      border-left: 1px solid var(--border-subtle);
+      font-size: 0.82rem;
+      display: none;
+    }
+
+    @media (min-width: 1280px) {
+      aside.toc {
+        display: block;
+      }
+    }
+
+    .toc-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .toc-link {
+      display: block;
+      color: var(--text-dim);
+      text-decoration: none;
+      padding: 4px 0;
+      line-height: 1.4;
+      transition: color 0.15s ease;
+    }
+
+    .toc-link:hover {
+      color: var(--text);
+    }
+
+    .toc-link.active {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* Content Typography & Components */
+    h1, h2, h3, h4 {
+      color: var(--text);
+      letter-spacing: -0.025em;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    h1 {
+      font-size: 2.4rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      font-size: 1.65rem;
+      margin-top: 48px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    h3 {
+      font-size: 1.25rem;
+      margin-top: 28px;
+      margin-bottom: 10px;
+    }
+
+    p {
+      margin-bottom: 16px;
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+
+    strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    /* Callout Boxes */
+    .callout {
+      border-left: 4px solid var(--accent);
+      background: var(--bg-surface);
+      padding: 16px 20px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 20px 0;
+      border: 1px solid var(--border);
+      border-left-width: 4px;
+    }
+
+    .callout.tip { border-left-color: var(--green); }
+    .callout.important { border-left-color: var(--yellow); }
+    .callout.warning { border-left-color: var(--red); }
+
+    .callout-title {
+      font-weight: 700;
+      font-size: 0.92rem;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .callout p {
+      margin-bottom: 0;
+      font-size: 0.92rem;
+    }
+
+    /* Code Blocks */
+    .code-container {
+      position: relative;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin: 18px 0;
+      overflow: hidden;
+    }
+
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--text-dim);
+    }
+
+    .copy-btn {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text-muted);
+      padding: 3px 8px;
+      font-size: 0.75rem;
+      font-family: var(--font-sans);
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+    }
+
+    .copy-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+    }
+
+    pre {
+      padding: 16px;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      color: #e2e8f0;
+      line-height: 1.55;
+    }
+
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.86em;
+      background: var(--bg-elevated);
+      color: var(--accent);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    pre code {
+      background: transparent;
+      padding: 0;
+      border: none;
+      color: inherit;
+    }
+
+    /* Terminal output styling */
+    .terminal-output {
+      background: #020617;
+      color: #38bdf8;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 14px;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      line-height: 1.45;
+      overflow-x: auto;
+      margin: 14px 0;
+      white-space: pre;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 0.92rem;
+    }
+
+    th, td {
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    th {
+      background: var(--bg-surface);
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Interactive Simulator */
+    .simulator-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin: 32px 0;
+      box-shadow: 0 8px 30px var(--accent-glow);
+    }
+
+    .sim-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .sim-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sim-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .sim-btn {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px 12px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .sim-btn:hover {
+      border-color: var(--accent);
+      background: var(--accent-glow);
+      color: var(--accent);
+    }
+
+    .sim-terminal {
+      background: #000000;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px;
+      font-family: var(--font-mono);
+      font-size: 0.84rem;
+      color: #38bdf8;
+      min-height: 220px;
+      max-height: 380px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      aside.sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+      }
+
+      aside.sidebar.open {
+        transform: translateX(0);
+      }
+
+      main.content {
+        margin-left: 0;
+        padding: 24px 20px;
+      }
+
+      .mobile-menu-btn {
+        display: block;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="navbar">
+    <div class="nav-left">
+      <button class="btn-icon mobile-menu-btn" style="display:none;" id="mobileMenuBtn" aria-label="Toggle Menu">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <a href="#" class="brand">
+        <div class="brand-icon">G</div>
+        <span>GraphNode</span>
+        <span class="badge-version">v0.1.0</span>
+      </a>
+    </div>
+
+    <div class="nav-search">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="searchInput" placeholder="Search commands, flags, guides...">
+    </div>
+
+    <div class="nav-right">
+      <a href="#quickstart" class="nav-link">Quick Start</a>
+      <a href="#simulator" class="nav-link">Interactive Playground</a>
+      <a href="#reference" class="nav-link">CLI Reference</a>
+      <button class="btn-icon" id="themeToggle" title="Toggle Light/Dark Theme">
+        <svg id="themeIcon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+      </button>
+      <a href="https://github.com/khokharsnehil45/graphnode" target="_blank" rel="noopener" class="btn-github">
+        <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        GitHub
+      </a>
+    </div>
+  </header>
+
+  <div class="layout-wrapper">
+    <!-- Left Navigation Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-group">
+        <div class="sidebar-title">Getting Started</div>
+        <a href="#overview" class="sidebar-link active">Overview</a>
+        <a href="#install" class="sidebar-link">Installation</a>
+        <a href="#quickstart" class="sidebar-link">Quick Start</a>
+        <a href="#simulator" class="sidebar-link">Interactive Playground</a>
+      </div>
+
+      <div class="sidebar-group">
+        <div class="sidebar-title">Basic Guide</div>
+        <a href="#create-graphs" class="sidebar-link">1. Create Named Graphs <span class="level-tag basic">Basic</span></a>
+        <a href="#add-nodes" class="sidebar-link">2. Adding Components <span class="level-tag basic">Basic</span></a>
+        <a href="#types-badges" class="sidebar-link">3. Roles & Icons <span class="level-tag basic">Basic</span></a>
+        <a href="#connect-nodes" class="sidebar-link">4. Wiring Connections <span class="level-tag basic">Basic</span></a>
+        <a href="#show-tree" class="sidebar-link">5. Viewing the Tree <span class="level-tag basic">Basic</span></a>
+      </div>
+
+      <div class="sidebar-group">
+        <div class="sidebar-title">Intermediate Guide</div>
+        <a href="#protocols" class="sidebar-link">Edge Protocols & Labels <span class="level-tag inter">Intermediate</span></a>
+        <a href="#multi-targets" class="sidebar-link">Multi-Target Routing <span class="level-tag inter">Intermediate</span></a>
+        <a href="#view-modes" class="sidebar-link">Tree, Card & Flow Views <span class="level-tag inter">Intermediate</span></a>
+        <a href="#disconnect-remove" class="sidebar-link">Disconnect & Remove <span class="level-tag inter">Intermediate</span></a>
+        <a href="#diagnostics" class="sidebar-link">Health & Diagnostics <span class="level-tag inter">Intermediate</span></a>
+      </div>
+
+      <div class="sidebar-group">
+        <div class="sidebar-title">Advanced Guide</div>
+        <a href="#multi-graph" class="sidebar-link">Multi-Graph Registry <span class="level-tag adv">Advanced</span></a>
+        <a href="#custom-binaries" class="sidebar-link">Auto-Generated Binaries <span class="level-tag adv">Advanced</span></a>
+        <a href="#cycle-detection" class="sidebar-link">Cycle Detection (DFS) <span class="level-tag adv">Advanced</span></a>
+        <a href="#exports" class="sidebar-link">Mermaid & DOT Export <span class="level-tag adv">Advanced</span></a>
+        <a href="#storage-model" class="sidebar-link">Project vs Global Storage <span class="level-tag adv">Advanced</span></a>
+      </div>
+
+      <div class="sidebar-group">
+        <div class="sidebar-title">Reference</div>
+        <a href="#cheat-sheet" class="sidebar-link">Command Cheat Sheet</a>
+        <a href="#icons-catalog" class="sidebar-link">Component Icon Catalog</a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="content">
+      <section id="overview">
+        <h1>GraphNode Documentation</h1>
+        <p>A lightweight, terminal-first system tree, graph architecture, and dependency mapping tool for engineers, architects, and DevOps teams.</p>
+        
+        <div class="callout tip">
+          <div class="callout-title">💡 The Core Philosophy</div>
+          <p>Instead of wrestling with drag-and-drop browser tools like Miro or draw.io, GraphNode allows you to scaffold, inspect, audit, and document entire system topologies right from your terminal in seconds.</p>
+        </div>
+      </section>
+
+      <!-- Installation -->
+      <section id="install">
+        <h2>Installation</h2>
+        <p>Install GraphNode instantly on Linux or macOS with a single curl command:</p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>bash (One-Line Installer)</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code>curl -sSL https://raw.githubusercontent.com/khokharsnehil45/graphnode/main/install.sh | bash</code></pre>
+        </div>
+
+        <p>Or install manually using Python pip:</p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>bash (Manual Install)</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code>git clone https://github.com/khokharsnehil45/graphnode.git
+cd graphnode
+pip install .</code></pre>
+        </div>
+        <p>This installs both the <code>graphnode</code> binary and its convenient shorthand alias <code>gnode</code>.</p>
+      </section>
+
+      <!-- Quick Start -->
+      <section id="quickstart">
+        <h2>Quick Start (30 Seconds)</h2>
+        <p>Create a dedicated graph, add services, connect them with protocols, and inspect the hierarchy:</p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>bash</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code># 1. Create a graph and auto-generate its dedicated terminal shortcut
+graphnode -create my_system
+
+# 2. Command my_system directly!
+my_system -add client -type client
+my_system -add gateway -type gateway
+my_system -add auth_service -type service
+my_system -add database -type db
+
+# 3. Connect nodes
+my_system -connect client gateway -label HTTPS
+my_system -connect gateway auth_service -label gRPC
+my_system -connect auth_service database -label SQL
+
+# 4. View visual tree
+my_system -show</code></pre>
+        </div>
+
+        <div class="terminal-output">📦 System Graph: my_system
+   Nodes: 4 | Connections: 3
+───────────────────────────────────────────────────────
+└── 💻 [client] (client)
+    └── ──(HTTPS)──▶ 🌐 [gateway] (gateway)
+        └── ──(gRPC)──▶ ⚙️  [auth_service] (service)
+            └── ──(SQL)──▶ 💾 [database] (db)</div>
+      </section>
+
+      <!-- Interactive Playground -->
+      <section id="simulator">
+        <h2>Interactive Terminal Playground</h2>
+        <p>Try GraphNode directly in your browser. Click the action buttons below to simulate commands and observe the live ASCII tree rendering:</p>
+
+        <div class="simulator-card">
+          <div class="sim-header">
+            <div class="sim-title">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 17l6-6-6-6m8 14h8"/></svg>
+              Live Graph Simulator
+            </div>
+            <button class="sim-btn" onclick="resetSim()">Reset Graph</button>
+          </div>
+
+          <div class="sim-actions">
+            <button class="sim-btn" onclick="simAddClient()">+ Add Client</button>
+            <button class="sim-btn" onclick="simAddGateway()">+ Add Gateway</button>
+            <button class="sim-btn" onclick="simAddServices()">+ Add Microservices</button>
+            <button class="sim-btn" onclick="simAddDatabases()">+ Add DB & Redis</button>
+            <button class="sim-btn" onclick="simConnectAll()">🔗 Connect Architecture</button>
+            <button class="sim-btn" onclick="simShowTree()">🌳 Show Tree</button>
+            <button class="sim-btn" onclick="simShowCard()">🗂️ Show Card View</button>
+          </div>
+
+          <div class="sim-terminal" id="simTerminal">> Initialized graph 'cloud_app'.
+Click the buttons above to build and inspect your system topology.</div>
+        </div>
+      </section>
+
+      <!-- BASIC SECTION -->
+      <section id="create-graphs">
+        <h2>1. Creating Dedicated Named Graphs</h2>
+        <p>GraphNode features an innovative <strong>Dynamic Command Generator</strong>. When you create a graph using <code>-create</code>, GraphNode creates an executable script inside <code>~/.local/bin/&lt;name&gt;</code>.</p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>bash</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code>graphnode -create graph1</code></pre>
+        </div>
+
+        <p>From that moment forward, you can command <code>graph1</code> directly in your terminal without typing <code>graphnode</code> or specifying flags:</p>
+        <div class="terminal-output">✨ Created new graph 'graph1'
+📦 Graph storage : ~/.config/graphnode/graphs/graph1.json
+🚀 CLI command   : graph1
+Active graph set to 'graph1'.
+
+You can now run directly:
+  graph1 -add &lt;node_name&gt;
+  graph1 -connect &lt;node1&gt; &lt;node2&gt;
+  graph1 -show</div>
+      </section>
+
+      <section id="add-nodes">
+        <h2>2. Adding Components</h2>
+        <p>Add components one by one, or in batches with single commands:</p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>bash</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code># Add single component
+graph1 -add api_gateway
+
+# Batch add multiple components at once
+graph1 -add service_auth service_billing service_orders worker_email</code></pre>
+        </div>
+      </section>
+
+      <section id="types-badges">
+        <h2>3. Component Roles & Badges</h2>
+        <p>Assign architectural roles using the <code>-type</code> (or <code>-t</code>) flag. GraphNode recognizes standard cloud and distributed systems roles and displays them with custom visual badges:</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Icon</th>
+              <th>Common Use Cases</th>
+              <th>Example Command</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>client</code></td><td>💻</td><td>Web, iOS, Android, CLI, User device</td><td><code>-add web -type client</code></td></tr>
+            <tr><td><code>gateway</code></td><td>🌐</td><td>Nginx, Kong, Envoy, Cloudflare, Traefik</td><td><code>-add proxy -type gateway</code></td></tr>
+            <tr><td><code>service</code></td><td>⚙️</td><td>Backend APIs, gRPC daemons, microservices</td><td><code>-add auth -type service</code></td></tr>
+            <tr><td><code>db</code> / <code>database</code></td><td>💾</td><td>Postgres, MySQL, MongoDB, DynamoDB</td><td><code>-add main_db -type db</code></td></tr>
+            <tr><td><code>queue</code> / <code>broker</code></td><td>📬</td><td>Kafka, RabbitMQ, SQS, NATS, BullMQ</td><td><code>-add events -type queue</code></td></tr>
+            <tr><td><code>cache</code></td><td>⚡</td><td>Redis, Memcached, Dragonfly</td><td><code>-add mem -type cache</code></td></tr>
+            <tr><td><code>worker</code></td><td>🔨</td><td>Async consumers, cron jobs, Celery tasks</td><td><code>-add exporter -type worker</code></td></tr>
+            <tr><td><code>storage</code></td><td>📦</td><td>S3, GCS buckets, MinIO, disk volume</td><td><code>-add blobs -type storage</code></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="connect-nodes">
+        <h2>4. Wiring Connections</h2>
+        <p>Create directed interactions between components with <code>-connect</code>:</p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>bash</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code>graph1 -connect client gateway
+graph1 -connect gateway auth_service
+graph1 -connect auth_service main_db</code></pre>
+        </div>
+      </section>
+
+      <section id="show-tree">
+        <h2>5. Visualizing the Tree</h2>
+        <p>Render your system tree in the terminal anytime using <code>-show</code>:</p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>bash</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code>graph1 -show</code></pre>
+        </div>
+      </section>
+
+      <!-- INTERMEDIATE SECTION -->
+      <section id="protocols">
+        <h2>Edge Protocols & Labels</h2>
+        <p>Real-world systems communicate across heterogeneous network layers. Add <code>-label</code> to declare protocols, methods, or relationships:</p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>bash</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code># HTTP / REST
+graph1 -connect web_client api_gateway -label HTTPS
+
+# gRPC Microservices
+graph1 -connect api_gateway user_service -label gRPC
+
+# Asynchronous message streaming
+graph1 -connect user_service kafka_queue -label "pub/sub"
+
+# Database query protocol
+graph1 -connect user_service postgres_db -label SQL</code></pre>
+        </div>
+      </section>
+
+      <section id="multi-targets">
+        <h2>Multi-Target Routing</h2>
+        <p>Save time by connecting one upstream service to multiple downstream targets in a single invocation:</p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>bash</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code># Connects gateway to service_a, service_b, and service_c
+graph1 -connect api_gateway service_auth service_billing service_orders</code></pre>
+        </div>
+      </section>
+
+      <section id="view-modes">
+        <h2>View Modes: Tree, Card & Flow</h2>
+        <p>GraphNode provides three purpose-built rendering engines:</p>
+
+        <h3>1. Tree Hierarchy View (<code>-show tree</code>)</h3>
+        <p>Traces dependency paths down to persistence sinks.</p>
+
+        <h3>2. Architecture Card View (<code>-show card</code> or <code>-list</code>)</h3>
+        <p>Outputs a structured, pipe-delimited component card with in-degree/out-degree counts and incoming/outgoing neighbors:</p>
+
+        <div class="terminal-output">=================================================================
+|                   SYSTEM ARCHITECTURE GRAPH                   |
+=================================================================
+| Graph Name    : graph1                                        |
+| Total Nodes   : 4                                             |
+| Total Edges   : 3                                             |
+| Entry Points  : web_client                                    |
+| Sinks/Leaves  : postgres_db                                   |
+| Cycles Found  : 0                                             |
+=================================================================
+| [api_gateway]  (gateway)                                      |
+|   ──▶ Outgoing (1) : user_service [gRPC]                      |
+|   ◀── Incoming (1) : web_client                               |
+|---------------------------------------------------------------|
+| [user_service]  (service)                                     |
+|   ──▶ Outgoing (1) : postgres_db [SQL]                        |
+|   ◀── Incoming (1) : api_gateway                              |
+=================================================================</div>
+
+        <h3>3. Direct Arrow Flow (<code>-show flow</code>)</h3>
+        <p>A concise, flat list of direct connections:</p>
+        <div class="terminal-output">Connections in graph1:
+  web_client ──(HTTPS)──▶ api_gateway
+  api_gateway ──(gRPC)──▶ user_service
+  user_service ──(SQL)──▶ postgres_db</div>
+      </section>
+
+      <section id="disconnect-remove">
+        <h2>Disconnecting & Removing Components</h2>
+        
+        <div class="code-container">
+          <div class="code-header">
+            <span>bash</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code># Remove connection between two nodes
+graph1 -disconnect api_gateway legacy_service
+
+# Delete node and automatically clean up all connected edges
+graph1 -remove legacy_service</code></pre>
+        </div>
+      </section>
+
+      <section id="diagnostics">
+        <h2>Health Diagnostics & Metrics (<code>-status</code>)</h2>
+        <p>Run <code>-status</code> to perform an instant diagnostic audit of your architecture:</p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>bash</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code>graph1 -status</code></pre>
+        </div>
+
+        <div class="terminal-output">Graph: graph1 (~/.config/graphnode/graphs/graph1.json)
+• Nodes        : 8
+• Connections  : 9
+• Entry Points : web_client, mobile_client (In-degree = 0)
+• Sinks/Leaves : postgres_db, redis_cache   (Out-degree = 0)
+• Isolated     : None
+• Cycles       : 0</div>
+      </section>
+
+      <!-- ADVANCED SECTION -->
+      <section id="multi-graph">
+        <h2>Multi-Graph Registry</h2>
+        <p>Manage multiple distinct architectures (e.g. <code>frontend_app</code>, <code>data_pipeline</code>, <code>kubernetes_cluster</code>):</p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>bash</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code># 1. Create independent graphs
+graphnode -create data_pipeline
+graphnode -create kubernetes_cluster
+
+# 2. List all registered graphs
+graphnode -graphs
+
+# 3. Switch active context
+graphnode -use data_pipeline
+
+# 4. Delete graph and remove its executable shortcut
+graphnode -delete-graph old_architecture</code></pre>
+        </div>
+      </section>
+
+      <section id="cycle-detection">
+        <h2>Cycle Detection Algorithm</h2>
+        <p>Circular dependencies in microservice architectures cause deadlocks, cascading failures, and infinite retry storms. GraphNode uses a Depth-First Search (DFS) three-color traversal algorithm to detect and alert you to cycles:</p>
+
+        <div class="callout warning">
+          <div class="callout-title">⚠️ Cycle Alert in Terminal</div>
+          <p>When a circular dependency exists (e.g. <code>A ──▶ B ──▶ C ──▶ A</code>), GraphNode flags the node with <code>🔄 (cycle detected)</code> and aborts infinite recursive loops cleanly.</p>
+        </div>
+      </section>
+
+      <section id="exports">
+        <h2>Diagram & Documentation Exports</h2>
+        <p>Export your terminal graphs into formats for team documentation:</p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>bash (Mermaid Markdown Export)</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code># Export to Mermaid flowchart format (renders natively in GitHub & Notion)
+graph1 -export mermaid -o docs/architecture.mmd
+
+# Export to Graphviz DOT format (for rendering PNG/SVG via graphviz)
+graph1 -export dot -o docs/architecture.dot
+
+# Export full Markdown report with tables and diagrams
+graph1 -export markdown -o docs/SYSTEM_SPEC.md
+
+# Export structured JSON
+graph1 -export json -o architecture.json</code></pre>
+        </div>
+      </section>
+
+      <section id="storage-model">
+        <h2>Dual Storage Model</h2>
+        <p>GraphNode balances global convenience with repository version control:</p>
+        <ul>
+          <li><strong>Global Named Graphs:</strong> Stored in <code>~/.config/graphnode/graphs/&lt;name&gt;.json</code>. Useful for personal whiteboarding and cross-project system modeling.</li>
+          <li><strong>Project-Level Persistence:</strong> Stored in <code>.graphnode.json</code> inside your Git repository. Subdirectories automatically discover the parent project's graph file.</li>
+          <li><strong>Explicit File Flag:</strong> Target any custom file using <code>-f /path/to/my_graph.json</code>.</li>
+        </ul>
+      </section>
+
+      <!-- REFERENCE SECTION -->
+      <section id="cheat-sheet">
+        <h2>Command Cheat Sheet</h2>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Command</th>
+              <th>Shorthand</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>graphnode -create &lt;name&gt;</code></td><td><code>create</code></td><td>Initialize named graph & generate executable shortcut</td></tr>
+            <tr><td><code>&lt;graph&gt; -add &lt;node&gt;</code></td><td><code>-a</code>, <code>add</code></td><td>Add one or more nodes</td></tr>
+            <tr><td><code>&lt;graph&gt; -connect &lt;u&gt; &lt;v&gt;</code></td><td><code>-c</code>, <code>connect</code></td><td>Create directed edge</td></tr>
+            <tr><td><code>&lt;graph&gt; -disconnect &lt;u&gt; &lt;v&gt;</code></td><td><code>disconnect</code></td><td>Remove directed edge</td></tr>
+            <tr><td><code>&lt;graph&gt; -remove &lt;node&gt;</code></td><td><code>-rm</code>, <code>remove</code></td><td>Delete node and incident edges</td></tr>
+            <tr><td><code>&lt;graph&gt; -show [tree|card|flow]</code></td><td><code>-s</code>, <code>show</code></td><td>Visualize system graph in terminal</td></tr>
+            <tr><td><code>&lt;graph&gt; -list</code></td><td><code>-l</code>, <code>list</code></td><td>Display component architecture card</td></tr>
+            <tr><td><code>&lt;graph&gt; -status</code></td><td><code>status</code></td><td>Display node, edge, root, leaf & cycle metrics</td></tr>
+            <tr><td><code>&lt;graph&gt; -export &lt;fmt&gt;</code></td><td><code>export</code></td><td>Export to mermaid, dot, markdown, or json</td></tr>
+            <tr><td><code>graphnode -graphs</code></td><td><code>graphs</code></td><td>List all registered named graphs</td></tr>
+            <tr><td><code>graphnode -use &lt;name&gt;</code></td><td><code>use</code></td><td>Switch active default graph</td></tr>
+            <tr><td><code>&lt;graph&gt; -clear</code></td><td><code>clear</code></td><td>Wipe all nodes and edges</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <footer style="margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--border-subtle); color: var(--text-dim); font-size: 0.85rem; text-align: center;">
+        GraphNode &bull; MIT License &bull; <a href="https://github.com/khokharsnehil45/graphnode" style="color:var(--accent); text-decoration:none;">GitHub Repository</a>
+      </footer>
+    </main>
+
+    <!-- Right Table of Contents (On this page) -->
+    <aside class="toc">
+      <div class="toc-title">On this page</div>
+      <a href="#overview" class="toc-link">Overview</a>
+      <a href="#install" class="toc-link">Installation</a>
+      <a href="#quickstart" class="toc-link">Quick Start</a>
+      <a href="#simulator" class="toc-link">Playground</a>
+      <a href="#create-graphs" class="toc-link">Named Graphs</a>
+      <a href="#add-nodes" class="toc-link">Adding Nodes</a>
+      <a href="#types-badges" class="toc-link">Roles & Badges</a>
+      <a href="#connect-nodes" class="toc-link">Wiring Connections</a>
+      <a href="#show-tree" class="toc-link">Visualizing Tree</a>
+      <a href="#protocols" class="toc-link">Protocols & Labels</a>
+      <a href="#multi-targets" class="toc-link">Multi-Target Routing</a>
+      <a href="#view-modes" class="toc-link">View Modes</a>
+      <a href="#diagnostics" class="toc-link">Health Diagnostics</a>
+      <a href="#multi-graph" class="toc-link">Multi-Graph Registry</a>
+      <a href="#cycle-detection" class="toc-link">Cycle Detection</a>
+      <a href="#exports" class="toc-link">Diagram Exports</a>
+      <a href="#cheat-sheet" class="toc-link">Cheat Sheet</a>
+    </aside>
+  </div>
+
+  <script>
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    let currentTheme = localStorage.getItem('gn_theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+
+    themeToggle.addEventListener('click', () => {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      localStorage.setItem('gn_theme', currentTheme);
+    });
+
+    // Copy to clipboard
+    function copyCode(button) {
+      const codeBlock = button.closest('.code-container').querySelector('pre code');
+      if (codeBlock) {
+        navigator.clipboard.writeText(codeBlock.innerText).then(() => {
+          const original = button.innerText;
+          button.innerText = 'Copied!';
+          button.style.borderColor = 'var(--green)';
+          button.style.color = 'var(--green)';
+          setTimeout(() => {
+            button.innerText = original;
+            button.style.borderColor = '';
+            button.style.color = '';
+          }, 1800);
+        });
+      }
+    }
+
+    // Interactive Simulator State
+    let simNodes = [];
+    let simEdges = [];
+    const simTerminal = document.getElementById('simTerminal');
+
+    function resetSim() {
+      simNodes = [];
+      simEdges = [];
+      simTerminal.innerText = "> Cleared graph 'cloud_app'.\nUse the buttons above to build components.";
+    }
+
+    function simAddClient() {
+      if (!simNodes.some(n => n.name === 'web_client')) {
+        simNodes.push({ name: 'web_client', type: 'client', icon: '💻' });
+        simTerminal.innerText += "\nAdded node: [web_client] (type: client)";
+      }
+    }
+
+    function simAddGateway() {
+      if (!simNodes.some(n => n.name === 'api_gateway')) {
+        simNodes.push({ name: 'api_gateway', type: 'gateway', icon: '🌐' });
+        simTerminal.innerText += "\nAdded node: [api_gateway] (type: gateway)";
+      }
+    }
+
+    function simAddServices() {
+      ['auth_service', 'order_service'].forEach(name => {
+        if (!simNodes.some(n => n.name === name)) {
+          simNodes.push({ name: name, type: 'service', icon: '⚙️ ' });
+          simTerminal.innerText += `\nAdded node: [${name}] (type: service)`;
+        }
+      });
+    }
+
+    function simAddDatabases() {
+      if (!simNodes.some(n => n.name === 'postgres_db')) {
+        simNodes.push({ name: 'postgres_db', type: 'db', icon: '💾' });
+        simTerminal.innerText += "\nAdded node: [postgres_db] (type: db)";
+      }
+      if (!simNodes.some(n => n.name === 'redis_cache')) {
+        simNodes.push({ name: 'redis_cache', type: 'cache', icon: '⚡' });
+        simTerminal.innerText += "\nAdded node: [redis_cache] (type: cache)";
+      }
+    }
+
+    function simConnectAll() {
+      simAddClient();
+      simAddGateway();
+      simAddServices();
+      simAddDatabases();
+      simEdges = [
+        { from: 'web_client', to: 'api_gateway', label: 'HTTPS' },
+        { from: 'api_gateway', to: 'auth_service', label: 'gRPC' },
+        { from: 'api_gateway', to: 'order_service', label: 'REST' },
+        { from: 'auth_service', to: 'redis_cache', label: 'JWT' },
+        { from: 'order_service', to: 'postgres_db', label: 'SQL' },
+      ];
+      simTerminal.innerText += "\nConnected: [web_client] ──▶ [api_gateway] via (HTTPS)";
+      simTerminal.innerText += "\nConnected: [api_gateway] ──▶ [auth_service] via (gRPC)";
+      simTerminal.innerText += "\nConnected: [api_gateway] ──▶ [order_service] via (REST)";
+      simTerminal.innerText += "\nConnected: [auth_service] ──▶ [redis_cache] via (JWT)";
+      simTerminal.innerText += "\nConnected: [order_service] ──▶ [postgres_db] via (SQL)";
+    }
+
+    function simShowTree() {
+      if (simNodes.length === 0) {
+        simTerminal.innerText += "\nGraph is empty. Click + Add buttons first.";
+        return;
+      }
+      simTerminal.innerText = `📦 System Graph: cloud_app\n   Nodes: ${simNodes.length} | Connections: ${simEdges.length}\n───────────────────────────────────────────────────────\n└── 💻 [web_client] (client)\n    └── ──(HTTPS)──▶ 🌐 [api_gateway] (gateway)\n        ├── ──(gRPC)──▶ ⚙️  [auth_service] (service)\n        │   └── ──(JWT)──▶ ⚡ [redis_cache] (cache)\n        └── ──(REST)──▶ ⚙️  [order_service] (service)\n            └── ──(SQL)──▶ 💾 [postgres_db] (db)`;
+    }
+
+    function simShowCard() {
+      if (simNodes.length === 0) {
+        simTerminal.innerText += "\nGraph is empty.";
+        return;
+      }
+      simTerminal.innerText = `=================================================================\n|                   SYSTEM ARCHITECTURE GRAPH                   |\n=================================================================\n| Graph Name    : cloud_app                                     |\n| Total Nodes   : ${simNodes.length}                                             |\n| Total Edges   : ${simEdges.length}                                             |\n| Entry Points  : web_client                                    |\n| Sinks/Leaves  : postgres_db, redis_cache                      |\n=================================================================\n| [api_gateway]  (gateway)                                      |\n|   ──▶ Outgoing (2) : auth_service, order_service              |\n|   ◀── Incoming (1) : web_client                               |\n|---------------------------------------------------------------|\n| [auth_service]  (service)                                     |\n|   ──▶ Outgoing (1) : redis_cache                              |\n|   ◀── Incoming (1) : api_gateway                              |\n=================================================================`;
+    }
+
+    // Scroll spy for TOC
+    const sections = document.querySelectorAll('main.content section[id]');
+    const tocLinks = document.querySelectorAll('.toc-link');
+
+    window.addEventListener('scroll', () => {
+      let currentId = '';
+      sections.forEach(sec => {
+        const top = sec.offsetTop - 100;
+        if (window.scrollY >= top) {
+          currentId = sec.getAttribute('id');
+        }
+      });
+
+      tocLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === `#${currentId}`) {
+          link.classList.add('active');
+        }
+      });
+    });
+
+    // Simple search filter
+    const searchInput = document.getElementById('searchInput');
+    searchInput.addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase().trim();
+      const sidebarLinks = document.querySelectorAll('.sidebar-link');
+      sidebarLinks.forEach(l => {
+        const text = l.innerText.toLowerCase();
+        l.style.display = text.includes(q) || q === '' ? 'flex' : 'none';
+      });
+    });
+  </script>
+</body>
+</html>
