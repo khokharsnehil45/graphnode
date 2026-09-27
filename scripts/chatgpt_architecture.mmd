@@ -1,0 +1,47 @@
+graph TD
+    agent_runtime["agent_runtime <br/> <i>service</i>"]
+    api_client["api_client <br/> <i>client</i>"]
+    api_gateway{"api_gateway <br/> <i>gateway</i>"}
+    auth_service["auth_service <br/> <i>service</i>"]
+    billing_service["billing_service <br/> <i>service</i>"]
+    chat_orchestrator["chat_orchestrator <br/> <i>service</i>"]
+    cloudflare_edge{"cloudflare_edge <br/> <i>gateway</i>"}
+    code_interpreter["code_interpreter <br/> <i>worker</i>"]
+    inference_router{"inference_router <br/> <i>gateway</i>"}
+    kafka_events[["kafka_events <br/> <i>queue</i>"]]
+    kv_cache_cluster["kv_cache_cluster <br/> <i>cache</i>"]
+    llm_inference_cluster["llm_inference_cluster <br/> <i>service</i>"]
+    mobile_client["mobile_client <br/> <i>client</i>"]
+    moderation_service["moderation_service <br/> <i>service</i>"]
+    postgres_db[("postgres_db <br/> <i>db</i>")]
+    redis_session_cache["redis_session_cache <br/> <i>cache</i>"]
+    s3_multimodal_store["s3_multimodal_store <br/> <i>storage</i>"]
+    vector_db[("vector_db <br/> <i>db</i>")]
+    voice_client["voice_client <br/> <i>client</i>"]
+    web_client["web_client <br/> <i>client</i>"]
+    web_search_worker["web_search_worker <br/> <i>worker</i>"]
+    agent_runtime -->|"Execute Python"| code_interpreter
+    agent_runtime -->|"Semantic Search"| vector_db
+    agent_runtime -->|"Live Search"| web_search_worker
+    api_client -->|"HTTPS"| cloudflare_edge
+    api_gateway -->|"gRPC"| auth_service
+    api_gateway -->|"gRPC"| billing_service
+    api_gateway -->|"HTTP / WebSocket"| chat_orchestrator
+    auth_service -->|"SQL"| postgres_db
+    auth_service -->|"Session Cache"| redis_session_cache
+    billing_service -->|"Quota Checks"| postgres_db
+    billing_service -->|"Token Buckets"| redis_session_cache
+    chat_orchestrator -->|"Tools & RAG"| agent_runtime
+    chat_orchestrator -->|"Token Generation"| inference_router
+    chat_orchestrator -->|"Audit & RLHF"| kafka_events
+    chat_orchestrator -->|"Pre-check"| moderation_service
+    chat_orchestrator -->|"Chat History"| postgres_db
+    chat_orchestrator -->|"Active Stream"| redis_session_cache
+    chat_orchestrator -->|"File Attachments"| s3_multimodal_store
+    cloudflare_edge -->|"mTLS WireGuard"| api_gateway
+    inference_router -->|"vLLM / TensorRT"| llm_inference_cluster
+    llm_inference_cluster -->|"PagedAttention"| kv_cache_cluster
+    llm_inference_cluster -->|"Post-filter tokens"| moderation_service
+    mobile_client -->|"HTTPS"| cloudflare_edge
+    voice_client -->|"WebRTC"| cloudflare_edge
+    web_client -->|"HTTPS"| cloudflare_edge
